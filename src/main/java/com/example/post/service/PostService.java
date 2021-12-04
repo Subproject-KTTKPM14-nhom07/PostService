@@ -7,9 +7,9 @@ import java.util.List;
 
 public interface PostService {
     public Post savePost(Post post);
-    public List<Post> getAllPosts();
+    public List<ResponseTemplateVO> getAllPosts();
     public ResponseTemplateVO getPostWithUser(Long id);
     public Post getPostById(Long id);
-    public List<Post> getPostByUserId(Long userId);
+    public List<ResponseTemplateVO> getPostByUserId(Long userId);
 
 }
