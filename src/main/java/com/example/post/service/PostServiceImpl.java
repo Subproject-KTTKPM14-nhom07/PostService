@@ -6,14 +6,17 @@ import com.example.post.entity.Post;
 import com.example.post.repository.PostRepository;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class PostServiceImpl implements PostService{
 
     @Autowired
@@ -55,7 +58,7 @@ public class PostServiceImpl implements PostService{
         vo.setPost(post);
 
         User user = restTemplate.getForObject("http://localhost:8000/user/" + post.getUserId(),User.class);
-
+//        log.info(LocalDateTime.now()+"");
         vo.setUser(user);
         return vo;
     }
