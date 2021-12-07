@@ -29,6 +29,7 @@ public class PostServiceImpl implements PostService{
     @Retry(name="basic")
     @RateLimiter(name="basic")
     public Post savePost(Post post) {
+        post.setDayPost(LocalDateTime.now());
         return postRepository.saveAndFlush(post);
     }
 
