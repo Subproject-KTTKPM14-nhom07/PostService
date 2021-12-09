@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
@@ -35,5 +38,25 @@ public class PostApplication {
     public RestTemplate restTemplate(){
         return new RestTemplate();
     }
+    @Bean
+    LettuceConnectionFactory jedisConnectionFactory(){
 
+        LettuceConnectionFactory x=new LettuceConnectionFactory();
+        x.setHostName("redis");
+        x.setPort(6379);
+
+        return x;
+    }
+
+    @Bean
+    RedisTemplate redisTemplate(){
+        RedisTemplate redisTemplate = new RedisTemplate();
+        redisTemplate.setConnectionFactory(jedisConnectionFactory());
+        return redisTemplate;
+    }
+//    @Bean
+//    HashOperations hashOperations(){
+//        RedisTemplate redisTemplate = new RedisTemplate();
+//        return redisTemplate.opsForHash();
+//    }
 }

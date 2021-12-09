@@ -8,6 +8,8 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,7 +20,18 @@ import java.util.List;
 @Service
 @Slf4j
 public class PostServiceImpl implements PostService{
+    //redis
 
+    private HashOperations hashOperations;//crud hash
+
+    private RedisTemplate redisTemplate;
+    @Autowired
+    public PostServiceImpl(RedisTemplate redisTemplate) {
+
+        this.hashOperations = redisTemplate.opsForHash();
+        this.redisTemplate = redisTemplate;
+
+    }
     @Autowired
     private PostRepository postRepository;
 
@@ -31,6 +44,7 @@ public class PostServiceImpl implements PostService{
     public Post savePost(Post post) {
         post.setDayPost(LocalDateTime.now());
         return postRepository.saveAndFlush(post);
+
     }
 
     @Override
@@ -44,6 +58,9 @@ public class PostServiceImpl implements PostService{
             templateVO=getPostWithUser(post.getId());
             voList.add(templateVO);
         }
+//        Post p= new Post();
+//        p.setContent("AAAAAAAAAAAAAAAAA");
+//        hashOperations.put("EMPLOYEE", "xxxxx", p);
         return voList;
     }
 
@@ -54,14 +71,22 @@ public class PostServiceImpl implements PostService{
      * get post and user info with post id
      */
     public ResponseTemplateVO getPostWithUser(Long id) {
-        ResponseTemplateVO vo = new ResponseTemplateVO();
-        Post post = postRepository.findById(id).get();
-        vo.setPost(post);
+        ResponseTemplateVO vox=null;
+        ResponseTemplateVO vo=null;
+        vox= (ResponseTemplateVO) hashOperations.get("POSTID", id);
+        if(vox==null){
+            vo = new ResponseTemplateVO();
+            Post post = postRepository.findById(id).get();
+            vo.setPost(post);
 
-        User user = restTemplate.getForObject("http://localhost:8000/user/" + post.getUserId(),User.class);
+            User user = restTemplate.getForObject("http://18.136.126.140:8000/user/" + post.getUserId(),User.class);
 //        log.info(LocalDateTime.now()+"");
-        vo.setUser(user);
-        return vo;
+            vo.setUser(user);
+            hashOperations.put("POSTID", id, vo);
+            return vo;
+        }
+        else return vox;
+
     }
 
     @Override
