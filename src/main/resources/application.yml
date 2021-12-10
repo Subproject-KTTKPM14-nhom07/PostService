@@ -13,6 +13,11 @@ spring:
         dialect: org.hibernate.dialect.MySQL5Dialect
   application:
     name: POST-SERVICE
+  config:
+      import: "optional:configserver:"
+  cloud:
+    config:
+      uri: http://18.136.126.140:8888
 
 #  redis:
 #    hostname: localhost
@@ -24,28 +29,15 @@ spring:
 #        max-active: 30
 #        max-idle: 8
 #        min-idle: 0
-eureka:
-  client:
-    registerWithEureka:
-      value: true
-    fetchRegistry:
-      value: true
-    instance:
-      hostname: 18.136.126.140
-    serviceUrl:
-      defaultZone: http://18.136.126.140:8761/eureka
+#eureka:
+#  client:
+#    registerWithEureka:
+#      value: true
+#    fetchRegistry:
+#      value: true
+#    instance:
+#      hostname: 18.136.126.140
+#    serviceUrl:
+#      defaultZone: http://18.136.126.140:8761/eureka
 server:
   port: 8001
-
-resilience4j:
-  retry:
-    instances:
-      basic:
-        maxRetryAttemps: 5
-        waitDuration: 3s
-  ratelimiter:
-    instances:
-      basic:
-        limitForPeriod: 2
-        limitRefreshPeriod: 1s
-        timeoutDuration: 1s

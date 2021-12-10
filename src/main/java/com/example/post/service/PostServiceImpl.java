@@ -27,11 +27,11 @@ public class PostServiceImpl implements PostService{
     private RedisTemplate redisTemplate;
     @Autowired
     public PostServiceImpl(RedisTemplate redisTemplate) {
-
         this.hashOperations = redisTemplate.opsForHash();
         this.redisTemplate = redisTemplate;
-
     }
+
+
     @Autowired
     private PostRepository postRepository;
 
@@ -39,8 +39,6 @@ public class PostServiceImpl implements PostService{
     private RestTemplate restTemplate;
 
     @Override
-    @Retry(name="basic")
-    @RateLimiter(name="basic")
     public Post savePost(Post post) {
         post.setDayPost(LocalDateTime.now());
         return postRepository.saveAndFlush(post);
@@ -48,8 +46,7 @@ public class PostServiceImpl implements PostService{
     }
 
     @Override
-    @Retry(name="basic")
-    @RateLimiter(name="basic")
+    @RateLimiter(name="post")
     public List<ResponseTemplateVO> getAllPosts() {
         List<Post> postList=postRepository.findAll();
         List<ResponseTemplateVO> voList=new ArrayList<>();
@@ -58,18 +55,11 @@ public class PostServiceImpl implements PostService{
             templateVO=getPostWithUser(post.getId());
             voList.add(templateVO);
         }
-//        Post p= new Post();
-//        p.setContent("AAAAAAAAAAAAAAAAA");
-//        hashOperations.put("EMPLOYEE", "xxxxx", p);
         return voList;
     }
 
     @Override
-    @Retry(name="basic")
-    @RateLimiter(name="basic")
-    /**
-     * get post and user info with post id
-     */
+    @Retry(name="post")
     public ResponseTemplateVO getPostWithUser(Long id) {
         ResponseTemplateVO vox=null;
         ResponseTemplateVO vo=null;
@@ -79,8 +69,7 @@ public class PostServiceImpl implements PostService{
             Post post = postRepository.findById(id).get();
             vo.setPost(post);
 
-            User user = restTemplate.getForObject("http://18.136.126.140:8000/user/" + post.getUserId(),User.class);
-//        log.info(LocalDateTime.now()+"");
+            User user = restTemplate.getForObject("http://localhost:8000/user/" + post.getUserId(),User.class);
             vo.setUser(user);
             hashOperations.put("POSTID", id, vo);
             return vo;
@@ -90,15 +79,11 @@ public class PostServiceImpl implements PostService{
     }
 
     @Override
-    @Retry(name="basic")
-    @RateLimiter(name="basic")
     public Post getPostById(Long id) {
         return postRepository.findById(id).get();
     }
 
     @Override
-    @Retry(name="basic")
-    @RateLimiter(name="basic")
     public List<ResponseTemplateVO> getPostByUserId(Long userId) {
         List<Post> postList=postRepository.getPostByUserId(userId);
         List<ResponseTemplateVO> voList=new ArrayList<>();
