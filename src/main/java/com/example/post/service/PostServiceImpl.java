@@ -44,7 +44,7 @@ public class PostServiceImpl implements PostService{
         return postRepository.saveAndFlush(post);
 
     }
-
+    //post with not redis
     @Override
     @RateLimiter(name="post")
     public List<ResponseTemplateVO> getAllPosts() {
@@ -57,25 +57,23 @@ public class PostServiceImpl implements PostService{
         }
         return voList;
     }
-
     @Override
     @Retry(name="post")
     public ResponseTemplateVO getPostWithUser(Long id) {
         ResponseTemplateVO vox=null;
         ResponseTemplateVO vo=null;
-        vox= (ResponseTemplateVO) hashOperations.get("POSTID", id);
+        //vox= (ResponseTemplateVO) hashOperations.get("POSTID", id);
         if(vox==null){
             vo = new ResponseTemplateVO();
             Post post = postRepository.findById(id).get();
             vo.setPost(post);
 
-            User user = restTemplate.getForObject("http://localhost:8000/user/" + post.getUserId(),User.class);
+            User user = restTemplate.getForObject("http://18.136.126.140:8000/user/" + post.getUserId(),User.class);
             vo.setUser(user);
-            hashOperations.put("POSTID", id, vo);
+            //hashOperations.put("POSTID", id, vo);
             return vo;
         }
         else return vox;
-
     }
 
     @Override
@@ -93,5 +91,36 @@ public class PostServiceImpl implements PostService{
             voList.add(templateVO);
         }
         return voList;
+    }
+    //post with redis
+    @Override
+    @RateLimiter(name="post")
+    public List<ResponseTemplateVO> getAllPostsRedis() {
+        List<Post> postList=postRepository.findAll();
+        List<ResponseTemplateVO> voList=new ArrayList<>();
+        ResponseTemplateVO templateVO;
+        for (Post post:postList) {
+            templateVO=getPostWithUserRedis(post.getId());
+            voList.add(templateVO);
+        }
+        return voList;
+    }
+    @Override
+    @Retry(name="post")
+    public ResponseTemplateVO getPostWithUserRedis(Long id) {
+        ResponseTemplateVO vox=null;
+        ResponseTemplateVO vo=null;
+        vox= (ResponseTemplateVO) hashOperations.get("POSTID", id);
+        if(vox==null){
+            vo = new ResponseTemplateVO();
+            Post post = postRepository.findById(id).get();
+            vo.setPost(post);
+
+            User user = restTemplate.getForObject("http://18.136.126.140:8000/user/" + post.getUserId(),User.class);
+            vo.setUser(user);
+            hashOperations.put("POSTID", id, vo);
+            return vo;
+        }
+        else return vox;
     }
 }
