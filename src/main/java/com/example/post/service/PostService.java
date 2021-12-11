@@ -15,4 +15,6 @@ public interface PostService {
     public List<ResponseTemplateVO> getAllPostsRedis();
     public ResponseTemplateVO getPostWithUserRedis(Long id);
 
+    public List<ResponseTemplateVO> getAllPostsRT();
+    public ResponseTemplateVO getPostWithUserRT(Long id);
 }

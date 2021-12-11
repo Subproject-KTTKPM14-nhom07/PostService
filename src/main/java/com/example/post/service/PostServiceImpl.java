@@ -44,7 +44,9 @@ public class PostServiceImpl implements PostService{
         return postRepository.saveAndFlush(post);
 
     }
-    //post with not redis
+
+    //ko xử dụng gì xài như bình thường
+    //post with not redis, retry bên user
     @Override
     @RateLimiter(name="post")
     public List<ResponseTemplateVO> getAllPosts() {
@@ -80,7 +82,6 @@ public class PostServiceImpl implements PostService{
     public Post getPostById(Long id) {
         return postRepository.findById(id).get();
     }
-
     @Override
     public List<ResponseTemplateVO> getPostByUserId(Long userId) {
         List<Post> postList=postRepository.getPostByUserId(userId);
@@ -92,7 +93,9 @@ public class PostServiceImpl implements PostService{
         }
         return voList;
     }
-    //post with redis
+
+
+    //post with redis ko sử dụng retry
     @Override
     @RateLimiter(name="post")
     public List<ResponseTemplateVO> getAllPostsRedis() {
@@ -105,6 +108,7 @@ public class PostServiceImpl implements PostService{
         }
         return voList;
     }
+
     @Override
     @Retry(name="post")
     public ResponseTemplateVO getPostWithUserRedis(Long id) {
@@ -119,6 +123,38 @@ public class PostServiceImpl implements PostService{
             User user = restTemplate.getForObject("http://18.136.126.140:8000/user/" + post.getUserId(),User.class);
             vo.setUser(user);
             hashOperations.put("POSTID", id, vo);
+            return vo;
+        }
+        else return vox;
+    }
+
+    //post có retry latemitter bên user
+    @Override
+    @RateLimiter(name="post")
+    public List<ResponseTemplateVO> getAllPostsRT() {
+        List<Post> postList=postRepository.findAll();
+        List<ResponseTemplateVO> voList=new ArrayList<>();
+        ResponseTemplateVO templateVO;
+        for (Post post:postList) {
+            templateVO=getPostWithUserRT(post.getId());
+            voList.add(templateVO);
+        }
+        return voList;
+    }
+    @Override
+    @Retry(name="post")
+    public ResponseTemplateVO getPostWithUserRT(Long id) {
+        ResponseTemplateVO vox=null;
+        ResponseTemplateVO vo=null;
+        //vox= (ResponseTemplateVO) hashOperations.get("POSTID", id);
+        if(vox==null){
+            vo = new ResponseTemplateVO();
+            Post post = postRepository.findById(id).get();
+            vo.setPost(post);
+
+            User user = restTemplate.getForObject("http://18.136.126.140:8000/user/retry/" + post.getUserId(),User.class);
+            vo.setUser(user);
+            //hashOperations.put("POSTID", id, vo);
             return vo;
         }
         else return vox;
